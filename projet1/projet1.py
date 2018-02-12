@@ -63,12 +63,25 @@ def longueur_body(em):
 	
 print(longueur_body(l1[0]))
 
+#pour calculer l'histogramme des longeur de mails
 def liste_longueur(lem):
 	li=[]
 	for l in lem:
 		li.append(longueur_body(l))
 		
 	return li
+"""
+liste = liste_longueur(l1)
+length = len(liste)
+plt.hist(liste,bins=int(length/20))
+"""
+
+def apprend_modele(spam, non_spam):
+	#renvoie la proba qu'un email soit d'une longueur donnée sachant que c'est un spam
+	#p(X=x | Y=+1) = p(Y=+1 | X=x) * p(X=x) / p(Y=+1)
+	#or p(Y=+1) = 0.5
+	#et p(X=x) = nbr email de longueur x / nbr email
+	#et p(Y=+1 | X=x) = nbr email spam de taille x / nbr longueur de taille x
 	
-plt.hist(liste_longueur(l1),bins=100)
+	#renvoyer la distribution des spam selon leur longueur x
 plt.show()
