@@ -75,7 +75,7 @@ liste = liste_longueur(l1)
 length = len(liste)
 plt.hist(liste,bins=int(length/20))
 """
-
+#Q 2.3
 def apprend_modele(spam, non_spam):
 	#renvoie la proba qu'un email soit d'une longueur donnée sachant que c'est un spam
 	#p(X=x | Y=+1) = p(Y=+1 | X=x) * p(X=x) / p(Y=+1)
@@ -84,4 +84,52 @@ def apprend_modele(spam, non_spam):
 	#et p(Y=+1 | X=x) = nbr email spam de taille x / nbr longueur de taille x
 	
 	#renvoyer la distribution des spam selon leur longueur x
+	
+	#calculs:
+	#suppression des doublons dans les listes
+	liste_mails = list(set(spam+non_spam))
+	#tableau (longueur, proba)
+	dict_lp = {} #dictionnaire longueur, proba spam
+	
+	for x in liste_mails:
+		dict_lp[x] = distribution(spam, non_spam, x)
+	
+	return dict_lp
+	
+
+def distribution(spam, non_spam, x):
+	#renvoie p(X=x | Y=+1) pour une longueur x donnee
+	nb_x_spam = 0 #nbre de spam de longueur x
+	nb_x_tot = 0 #nbre total de mail de llongueur x
+	
+	for lm in spam:
+		if lm == x:
+			nb_x_spam += 1
+			nb_x_tot += 1
+	for lm in non_spam:
+		if lm == x:
+			nb_x_tot += 1
+	
+	px = float(nb_x_tot) / (nb_x_tot + nb_x_spam) #p(X=x)
+	pyx = float(nb_x_spam) / nb_x_tot #p(Y=+1 | X=x)
+	
+	pxy = pyx * px / 0.5 #p(X=x | Y=+1)
+	
+	return pxy
+	
+def predict_email(emails, modele):
+	#renvoie la liste des labels pour l'ensemble des emails en fonction du modele passe en parametre
+
+	labels = [] #labels[i] contient le label de l'email emails[i]
+	for e in emails:
+		longueur = longueur_body(e)
+		if modele[longueur] > 0.5:
+			labels.append(+1)
+		else:
+			labels.append(-1)
+	
+	return labels
+	
+
+	
 plt.show()
