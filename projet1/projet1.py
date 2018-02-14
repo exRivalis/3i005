@@ -53,7 +53,7 @@ def split(liste, x):
 	
 	return l1, l2
 
-l1,l2=split(spam, 0.2)
+
 
 #np.bin
 
@@ -61,7 +61,7 @@ def longueur_body(em):
 
 	return len(em)
 	
-print(longueur_body(l1[0]))
+#print(longueur_body(l1[0]))
 
 #pour calculer l'histogramme des longeur de mails
 def liste_longueur(lem):
@@ -77,7 +77,7 @@ plt.hist(liste,bins=int(length/20))
 """
 #Q 2.3
 def apprend_modele(spam, non_spam):
-	#renvoie la proba qu'un email soit d'une longueur donnée sachant que c'est un spam
+	#renvoie la proba qu'un email soit d'une longueur donnee sachant que c'est un spam
 	#p(X=x | Y=+1) = p(Y=+1 | X=x) * p(X=x) / p(Y=+1)
 	#or p(Y=+1) = 0.5
 	#et p(X=x) = nbr email de longueur x / nbr email
@@ -87,27 +87,28 @@ def apprend_modele(spam, non_spam):
 	
 	#calculs:
 	#suppression des doublons dans les listes
-	liste_mails = list(set(spam+non_spam))
+	liste_mails = liste_longueur(list(set(spam+non_spam)))
 	#tableau (longueur, proba)
-	dict_lp = {} #dictionnaire longueur, proba spam
+	dict_lp = []#dictionnaire longueur, proba spam
 	
 	for x in liste_mails:
-		dict_lp[x] = distribution(spam, non_spam, x)
+		dict_lp.append((x,distribution(spam, non_spam, x)))
 	
 	return dict_lp
 	
+
 
 def distribution(spam, non_spam, x):
 	#renvoie p(X=x | Y=+1) pour une longueur x donnee
 	nb_x_spam = 0 #nbre de spam de longueur x
 	nb_x_tot = 0 #nbre total de mail de llongueur x
 	
-	for lm in spam:
-		if lm == x:
+	for lm in liste_longueur(spam):
+		if (lm == x):
 			nb_x_spam += 1
 			nb_x_tot += 1
-	for lm in non_spam:
-		if lm == x:
+	for lm in liste_longueur(non_spam):
+		if (lm == x):
 			nb_x_tot += 1
 	
 	px = float(nb_x_tot) / (nb_x_tot + nb_x_spam) #p(X=x)
@@ -121,9 +122,15 @@ def predict_email(emails, modele):
 	#renvoie la liste des labels pour l'ensemble des emails en fonction du modele passe en parametre
 
 	labels = [] #labels[i] contient le label de l'email emails[i]
+	#emails contient la longueur des emails
 	for e in emails:
-		longueur = longueur_body(e)
-		if modele[longueur] > 0.5:
+		
+		proba=0.5
+		for m in modele:
+			if(e>=m[0] and e<m[1]):
+				proba=m[2]
+		
+		if (proba > 0.5):
 			labels.append(+1)
 		else:
 			labels.append(-1)
@@ -131,5 +138,76 @@ def predict_email(emails, modele):
 	return labels
 	
 
+#Q 2.4 P(f(x) = y)
+def accuracy(emails, modele):
+	#emails[i] = (email, label)
+	list_email = []
+	for e in emails:
+		list_email.append(e[0])
+		
+	labels=predict_email(list_email,modele)
+	cpt=0.0
 	
+	for i in range(len(labels)):
+		if(l*emails[i][1]>=0):
+			cpt+=1.0
+	
+	return cpt/len(labels)
+	
+	
+	
+def proba_err(emails,modele):
+
+	return (1.0-accuracy(emails,modele))
+	
+def regroup(modele, bins):
+	#la longueur du plus long mail
+	
+	modele=sorted(modele,key=lambda model: model[0], reverse=True)
+	
+	new_modele=[]
+	proba=1.0
+	l_max = modele[0][0]
+	step=int(l_max/bins)
+	
+	cpt=0;
+	
+	for i in range(0, l_max,step):
+			
+			for m in modele:
+				
+				if(m[0]>=i and m[0]<i+step):
+					proba*=m[1]
+					cpt+=1
+					
+			if(cpt>0):
+				new_modele.append((i,i+step,proba))
+			
+			else:
+				new_modele.append((i,i+step,0.5))
+				
+			proba=1.0
+			cpt=0
+	
+	return new_modele
+		
+		
+
+l1_s,l2_s=split(liste_longueur(spam), 0.5)
+l1_ns,l2_ns=split(liste_longueur(nospam), 0.5)	
+	
+	
+modele=apprend_modele(l1_s,l1_ns)
+
+emails=[]
+
+for l in l2_s:
+	emails.append((l,+1))
+for l in l2_ns:
+	emails.append((l,-1))
+	
+modele_bine=regroup(modele,len(modele)/20)
+	
+print(proba_err(emails,modele_bine))
+
 plt.show()
